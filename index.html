@@ -1,125 +1,243 @@
-<!-- odd_even_demo.html — 학습용 데모 (실제 결제 없음) -->
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>홀짝 데모 (학습용)</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>사다리 데모 — 광고맛</title>
 <style>
-  body{font-family:system-ui,Segoe UI,Apple SD Gothic Neo,"Malgun Gothic",sans-serif;background:#0f172a;color:#e6eef8;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
-  .card{width:380px;padding:20px;border-radius:12px;background:linear-gradient(180deg,#111827, #0b1220);box-shadow:0 8px 30px rgba(2,6,23,0.7);}
-  h1{margin:0 0 12px;font-size:20px}
-  .balance{font-weight:700;margin-bottom:12px}
-  .row{display:flex;gap:8px;margin-bottom:10px}
-  input[type=number]{flex:1;padding:8px;border-radius:8px;border:1px solid #223046;background:#071126;color:#e6eef8}
-  button{padding:8px 12px;border-radius:8px;border:none;background:#2563eb;color:white;cursor:pointer}
-  .btn-odd{background:#ef4444}
-  .btn-even{background:#10b981}
-  .log{height:140px;overflow:auto;background:#071024;padding:8px;border-radius:8px;border:1px solid #13233a;font-size:13px}
-  .result{margin-top:10px;font-weight:700}
-  .muted{font-size:12px;color:#93c5fd}
+  :root{
+    --bg:#f3efe8; --card:#fffaf2; --accent:#7b3cff; --red:#ff3b3b; --blue:#3b82f6;
+    --gold:#f6c84c;
+  }
+  html,body{height:100%;margin:0;font-family:Inter, "Apple SD Gothic Neo","Malgun Gothic",system-ui; background:linear-gradient(180deg,#efe8df,#f8f6f2);}
+  .wrap{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:1fr 320px;gap:18px;padding:14px}
+  /* MAIN CARD */
+  .card{background:linear-gradient(180deg,var(--card),#f6f2e8);border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(10,10,20,0.08);position:relative;overflow:hidden}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  header h1{font-size:20px;margin:0;color:#2b2b2b}
+  .banner-ad{position:absolute;right:18px;top:18px;background:linear-gradient(90deg,#ff4d4d,#ffbd4d);padding:8px 12px;border-radius:999px;color:white;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,0.15);transform:rotate(4deg)}
+  /* ladder area */
+  .ladder-stage{display:flex;align-items:center;justify-content:center;gap:28px;padding:10px 0}
+  .ladder-column{width:160px;height:260px;background:linear-gradient(180deg,#e9e6e2,#fff);border-radius:8px;border:1px dashed rgba(0,0,0,0.06);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+  .peg{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+  .peg.odd{background:var(--red)} .peg.even{background:var(--blue)}
+  .result-box{margin-top:14px;padding:10px 12px;border-radius:10px;background:#1f2937;color:white;font-weight:700;min-width:280px;text-align:center}
+  /* bottom bar with fake market share */
+  .market{margin-top:12px;height:18px;border-radius:12px;background:#ddd;overflow:hidden;display:flex;align-items:center}
+  .m-odd{height:100%;background:linear-gradient(90deg,#ff7b7b,#ff3b3b);width:40%}
+  .m-even{height:100%;background:linear-gradient(90deg,#60a5fa,#2563eb);width:60%}
+  .market .label{display:flex;justify-content:space-between;font-size:12px;margin-top:6px}
+  /* right column */
+  .side{display:flex;flex-direction:column;gap:12px}
+  .history{background:#fff;border-radius:10px;padding:10px;height:360px;overflow:auto;box-shadow:inset 0 2px 0 rgba(255,255,255,0.6)}
+  .history .row{display:flex;align-items:center;justify-content:space-between;padding:8px;border-bottom:1px dashed #f0f0f0}
+  .ad-tall{background:linear-gradient(180deg,#2b2b2b,#151515);color:white;padding:12px;border-radius:12px;text-align:center;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,0.4)}
+  /* flashy animated bottom strip ads */
+  .strip-ads{grid-column:1/-1;margin-top:8px;display:flex;gap:10px;align-items:center}
+  .strip{flex:1;height:64px;border-radius:8px;overflow:hidden;position:relative;background:#111;color:white;display:flex;align-items:center;justify-content:center}
+  .strip.marquee{background:linear-gradient(90deg,#0ea5e9,#7c3aed)}
+  .strip .text{white-space:nowrap;display:inline-block;padding-left:100%;animation:marq 8s linear infinite}
+  @keyframes marq{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+  /* confetti-ish corner */
+  .corner-gold{position:absolute;left:-40px;top:-40px;width:160px;height:160px;background:conic-gradient(from 220deg,#ffeaa7,#ffd97a,#ffd97a00);transform:rotate(22deg);opacity:0.6}
+  /* buttons */
+  .controls{display:flex;gap:8px;align-items:center;margin-top:12px}
+  button{padding:10px 12px;border-radius:10px;border:none;background:var(--accent);color:white;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(123,60,255,0.18)}
+  .btn-alt{background:#111;color:white}
+  /* responsive */
+  @media(max-width:980px){.wrap{grid-template-columns:1fr;}.banner-ad{display:none}}
 </style>
 </head>
 <body>
-  <div class="card">
-    <h1>홀짝 데모 — 교육용 (실제 결제 없음)</h1>
-    <div class="balance">잔액: <span id="balance">1000</span> 코인</div>
+<div class="wrap">
+  <div class="card" id="mainCard">
+    <div class="corner-gold"></div>
+    <header>
+      <h1>사다리게임 데모 (광고맛)</h1>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div style="font-size:13px;color:#444">잔액: <span id="balance">500</span> 포인트</div>
+        <div class="banner-ad">HOT ⇢ 광고보상 +20%</div>
+      </div>
+    </header>
 
-    <div class="row">
-      <input id="betAmount" type="number" min="1" value="100" />
-      <select id="multiplier"><option value="2">배수: 2x (승리 시 배당)</option></select>
+    <div class="ladder-stage">
+      <div class="ladder-column">
+        <div class="peg odd" id="pegLeft">홀</div>
+        <div style="font-size:12px;color:#666;margin-top:8px">구매율 <strong id="leftShare">40%</strong></div>
+      </div>
+
+      <div style="width:24px;text-align:center">
+        <button class="btn-alt" id="rollBtn">▶ 추첨</button>
+      </div>
+
+      <div class="ladder-column">
+        <div class="peg even" id="pegRight">짝</div>
+        <div style="font-size:12px;color:#666;margin-top:8px">구매율 <strong id="rightShare">60%</strong></div>
+      </div>
     </div>
 
-    <div class="row">
-      <button id="btnOdd" class="btn-odd">홀에 베팅</button>
-      <button id="btnEven" class="btn-even">짝에 베팅</button>
-      <button id="btnReset" style="background:#64748b">리셋</button>
+    <div class="result-box" id="resultBox">결과 대기 중</div>
+
+    <div style="margin-top:10px">
+      <div class="market" aria-hidden="true">
+        <div class="m-odd" id="mOdd"></div>
+        <div class="m-even" id="mEven"></div>
+      </div>
+      <div class="market label">
+        <div>홀 <span id="pOdd">40%</span></div>
+        <div>라이브 VS</div>
+        <div>짝 <span id="pEven">60%</span></div>
+      </div>
     </div>
 
-    <div class="result" id="resultText">결과 대기 중</div>
-    <div class="muted">난수: 암호학적 RNG 사용 (crypto.getRandomValues)</div>
-
-    <h3 style="margin-top:12px">플레이 로그</h3>
-    <div class="log" id="log"></div>
+    <div class="controls">
+      <input id="betAmount" type="number" min="1" value="50" style="padding:10px;border-radius:8px;border:1px solid #eee;width:110px"/>
+      <button id="betOdd">홀 베팅</button>
+      <button id="betEven">짝 베팅</button>
+      <button id="resetBtn" class="btn-alt">초기화</button>
+    </div>
   </div>
 
+  <aside class="side">
+    <div class="history">
+      <div style="font-weight:800;margin-bottom:8px">최근 결과</div>
+      <div id="historyList">
+        <!-- JS가 채움 -->
+      </div>
+    </div>
+
+    <div class="ad-tall">
+      <div style="font-size:18px">이벤트 배너</div>
+      <div style="font-size:12px;margin-top:6px">광고 느낌만 재현 — 실제 결제 없음</div>
+    </div>
+
+    <div style="background:linear-gradient(180deg,#fff,#f8fafc);border-radius:10px;padding:10px;font-size:13px">
+      <div style="font-weight:800;margin-bottom:6px">유저 통계(데모)</div>
+      <div style="display:flex;justify-content:space-between"><span>참여자</span><strong id="players">124</strong></div>
+      <div style="display:flex;justify-content:space-between"><span>승률(최근10회)</span><strong id="winrate">50%</strong></div>
+      <div style="display:flex;justify-content:space-between"><span>보유포인트</span><strong id="balanceSide">500</strong></div>
+    </div>
+  </aside>
+
+  <!-- strip ads -->
+  <div class="strip-ads">
+    <div class="strip marquee"><span class="text">⚡ 한정 이벤트! 광고 시 보너스 포인트 지급! ⚡    </span></div>
+    <div class="strip" style="background:linear-gradient(90deg,#fe7a7a,#ffb86b)"><span>VIP 혜택 — 포인트 2배</span></div>
+    <div class="strip" style="background:linear-gradient(90deg,#7c3aed,#06b6d4)"><span>추천인 코드 입력하면 보너스</span></div>
+  </div>
+</div>
+
 <script>
-  // 안전: 브라우저 내에서만 동작, 결제/네트워크 없음
+  // IMPORTANT: 이 파일은 학습/디자인 데모용임. 실제 결제/계좌/현금 전혀 없음.
   const balanceEl = document.getElementById('balance');
-  const betInput = document.getElementById('betAmount');
-  const logEl = document.getElementById('log');
-  const resultText = document.getElementById('resultText');
+  const balanceSide = document.getElementById('balanceSide');
+  const resultBox = document.getElementById('resultBox');
+  const historyList = document.getElementById('historyList');
+  const leftShare = document.getElementById('leftShare');
+  const rightShare = document.getElementById('rightShare');
+  const pOdd = document.getElementById('pOdd');
+  const pEven = document.getElementById('pEven');
+  const mOdd = document.getElementById('mOdd');
+  const mEven = document.getElementById('mEven');
+  const playersEl = document.getElementById('players');
+  const winrateEl = document.getElementById('winrate');
 
-  let balance = 1000;
-  const houseEdge = 0.0; // 데모: 집 잔여 수수료 0으로 둠 (연구용)
-  const multiplier = 2; // 단순 2배 배당 (공정성 교육용)
+  // 가상 상태
+  let balance = 500;
+  let players = 124;
+  let history = []; // {choice: '홀'|'짝', roll: num}
+  let leftPercent = 40;
+  let rightPercent = 60;
 
-  function saveBalance() {
-    // 로컬에서는 저장 가능 — 학습용
-    localStorage.setItem('demo_balance', String(balance));
+  function saveState(){ localStorage.setItem('ladder_demo_state', JSON.stringify({balance,players,history,leftPercent,rightPercent})); }
+  function loadState(){
+    const s = localStorage.getItem('ladder_demo_state');
+    if(s) {
+      const o = JSON.parse(s);
+      balance=o.balance||balance; players=o.players||players; history=o.history||history;
+      leftPercent=o.leftPercent||leftPercent; rightPercent=o.rightPercent||rightPercent;
+    }
   }
-  function loadBalance(){
-    const v = localStorage.getItem('demo_balance');
-    if(v) balance = Number(v);
+  function render(){
     balanceEl.textContent = balance;
+    balanceSide.textContent = balance;
+    playersEl.textContent = players;
+    leftShare.textContent = leftPercent+'%'; rightShare.textContent = rightPercent+'%';
+    pOdd.textContent = leftPercent+'%'; pEven.textContent = rightPercent+'%';
+    mOdd.style.width = leftPercent+'%'; mEven.style.width = rightPercent+'%';
+    winrateEl.textContent = calcWinRate()+'%';
+    // history
+    historyList.innerHTML = history.slice(0,20).map(h=>{
+      return `<div class="row"><div style="display:flex;gap:8px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:${h.choice==='홀'? '#ff3b3b':'#3b82f6'}"></div><div style="font-size:13px">${h.choice}</div></div><div style="color:#666">${h.roll}</div></div>`
+    }).join('');
   }
 
-  function log(msg){
-    const t = new Date().toLocaleTimeString();
-    logEl.innerHTML = `<div>[${t}] ${msg}</div>` + logEl.innerHTML;
+  function calcWinRate(){
+    const last10 = history.slice(0,10);
+    if(last10.length===0) return 50;
+    const wins = last10.filter((h,i)=> (i%2===0 ? true:true)); // 데모용 더미 처리
+    // 실제 통계는 아님 — 그냥 랜덤 느낌
+    return Math.round((Math.random()*10+45));
   }
 
-  // 암호학적 난수: 1~6 주사위처럼 생성 (여기선 1~10)
-  function secureRandomInt(min, maxInclusive){
-    const range = maxInclusive - min + 1;
-    const maxUint32 = 0xFFFFFFFF;
-    const biasZone = Math.floor(maxUint32 / range) * range;
+  // 암호학적 난수 1~10
+  function secureRandomInt(min,max){
+    const range = max-min+1;
     const arr = new Uint32Array(1);
     while(true){
       crypto.getRandomValues(arr);
       const r = arr[0];
-      if(r < biasZone){
-        return min + (r % range);
-      }
+      return min + (r % range);
     }
   }
 
-  function play(betChoice){ // 'odd' or 'even'
-    const bet = Math.floor(Number(betInput.value));
-    if(!Number.isFinite(bet) || bet <= 0){ alert('배팅금액을 올바르게 입력해줘 ㅇ'); return; }
-    if(bet > balance){ alert('잔액 부족 ㅇ'); return; }
-
-    // 차단: 실제 결제 관련 동작 없음
-    // 결과 생성
-    const roll = secureRandomInt(1, 10); // 1~10
-    const isEven = (roll % 2 === 0);
-    const won = ( (isEven && betChoice === 'even') || (!isEven && betChoice === 'odd') );
-
-    // 손익 계산 (데모: 배당 multiplier, 집승률 = houseEdge)
-    let payout = 0;
-    if(won){
-      payout = Math.floor(bet * (multiplier - 1)); // 순이익
-      balance += payout;
-    } else {
-      balance -= bet;
-    }
-    saveBalance();
-    balanceEl.textContent = balance;
-
-    // 업데이트 UI
-    resultText.textContent = `주사위: ${roll} (${isEven ? '짝' : '홀'}) → ${won ? '승리 🎉' : '패배 😭'} / ${won ? ('+'+payout) : ('-'+bet)} 코인`;
-    log(`베팅: ${bet}코인 → 선택: ${betChoice} / 나온값: ${roll} / ${won ? '승' : '패'} / 잔액: ${balance}코인`);
+  // 베팅/추첨 로직 — 실제 화폐 연동 없음
+  function placeBet(choice){
+    const amt = Math.max(1, parseInt(document.getElementById('betAmount').value||50));
+    if(amt>balance){ alert('잔액 부족'); return; }
+    // simulate "시장" 변화: 랜덤으로 구매율 재조정
+    leftPercent = Math.max(10, Math.min(90, leftPercent + (Math.random()*10-5)));
+    rightPercent = 100 - leftPercent;
+    // draw
+    const roll = secureRandomInt(1,10);
+    const isEven = roll%2===0;
+    const resultChoice = isEven ? '짝' : '홀';
+    const win = (choice==='홀' && resultChoice==='홀') || (choice==='짝' && resultChoice==='짝');
+    if(win) balance += Math.floor(amt * 1); else balance -= amt;
+    // record
+    history.unshift({choice: resultChoice, roll});
+    if(history.length>200) history.pop();
+    players = Math.max(20, Math.floor(players + (Math.random()*6-3)));
+    saveState();
+    // flashy result
+    resultBox.textContent = `추첨 결과: ${roll} → ${resultChoice}  ${win ? '승리 🎉':'패배 😭'} / ${win ? ('+'+Math.floor(amt*1)):( '-'+amt) } 포인트`;
+    render();
   }
-
-  document.getElementById('btnOdd').addEventListener('click', ()=>play('odd'));
-  document.getElementById('btnEven').addEventListener('click', ()=>play('even'));
-  document.getElementById('btnReset').addEventListener('click', ()=>{
-    if(confirm('잔액을 초기화할래? (학습용)')){ balance = 1000; saveBalance(); balanceEl.textContent = balance; log('잔액 초기화'); resultText.textContent='결과 대기 중'; }
-  });
 
   // 초기 로드
-  loadBalance();
-  log('데모 시작 — 실제 화폐와 연결 금지됨');
+  loadState(); render();
+
+  document.getElementById('betOdd').addEventListener('click', ()=>placeBet('홀'));
+  document.getElementById('betEven').addEventListener('click', ()=>placeBet('짝'));
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    if(confirm('데모 상태 초기화할래?')){ localStorage.removeItem('ladder_demo_state'); balance=500; players=120; history=[]; leftPercent=40; rightPercent=60; render(); }
+  });
+
+  // small auto-roll demo (UI 데모용): 버튼 누르면 연출 애니메이션 없이 즉시 결과 표시
+  // 광고 클릭 연출: strip ad 클릭하면 모달같은 느낌으로 보너스 알림 (실제 지급 없음)
+  document.querySelectorAll('.strip').forEach(s=>{
+    s.addEventListener('click', ()=>{ alert('광고 클릭 보너스! (데모용, 실제 포인트 없음)'); });
+  });
+
+  // 화면 처음에 임시 히스토리 채움
+  if(history.length===0){
+    const sample = [];
+    for(let i=0;i<8;i++){
+      sample.push({choice: Math.random()>0.5?'홀':'짝', roll: Math.floor(Math.random()*10)+1});
+    }
+    history = sample.concat(history);
+    saveState(); render();
+  }
 </script>
 </body>
 </html>
