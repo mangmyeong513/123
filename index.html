@@ -1,0 +1,125 @@
+<!-- odd_even_demo.html — 학습용 데모 (실제 결제 없음) -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>홀짝 데모 (학습용)</title>
+<style>
+  body{font-family:system-ui,Segoe UI,Apple SD Gothic Neo,"Malgun Gothic",sans-serif;background:#0f172a;color:#e6eef8;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
+  .card{width:380px;padding:20px;border-radius:12px;background:linear-gradient(180deg,#111827, #0b1220);box-shadow:0 8px 30px rgba(2,6,23,0.7);}
+  h1{margin:0 0 12px;font-size:20px}
+  .balance{font-weight:700;margin-bottom:12px}
+  .row{display:flex;gap:8px;margin-bottom:10px}
+  input[type=number]{flex:1;padding:8px;border-radius:8px;border:1px solid #223046;background:#071126;color:#e6eef8}
+  button{padding:8px 12px;border-radius:8px;border:none;background:#2563eb;color:white;cursor:pointer}
+  .btn-odd{background:#ef4444}
+  .btn-even{background:#10b981}
+  .log{height:140px;overflow:auto;background:#071024;padding:8px;border-radius:8px;border:1px solid #13233a;font-size:13px}
+  .result{margin-top:10px;font-weight:700}
+  .muted{font-size:12px;color:#93c5fd}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>홀짝 데모 — 교육용 (실제 결제 없음)</h1>
+    <div class="balance">잔액: <span id="balance">1000</span> 코인</div>
+
+    <div class="row">
+      <input id="betAmount" type="number" min="1" value="100" />
+      <select id="multiplier"><option value="2">배수: 2x (승리 시 배당)</option></select>
+    </div>
+
+    <div class="row">
+      <button id="btnOdd" class="btn-odd">홀에 베팅</button>
+      <button id="btnEven" class="btn-even">짝에 베팅</button>
+      <button id="btnReset" style="background:#64748b">리셋</button>
+    </div>
+
+    <div class="result" id="resultText">결과 대기 중</div>
+    <div class="muted">난수: 암호학적 RNG 사용 (crypto.getRandomValues)</div>
+
+    <h3 style="margin-top:12px">플레이 로그</h3>
+    <div class="log" id="log"></div>
+  </div>
+
+<script>
+  // 안전: 브라우저 내에서만 동작, 결제/네트워크 없음
+  const balanceEl = document.getElementById('balance');
+  const betInput = document.getElementById('betAmount');
+  const logEl = document.getElementById('log');
+  const resultText = document.getElementById('resultText');
+
+  let balance = 1000;
+  const houseEdge = 0.0; // 데모: 집 잔여 수수료 0으로 둠 (연구용)
+  const multiplier = 2; // 단순 2배 배당 (공정성 교육용)
+
+  function saveBalance() {
+    // 로컬에서는 저장 가능 — 학습용
+    localStorage.setItem('demo_balance', String(balance));
+  }
+  function loadBalance(){
+    const v = localStorage.getItem('demo_balance');
+    if(v) balance = Number(v);
+    balanceEl.textContent = balance;
+  }
+
+  function log(msg){
+    const t = new Date().toLocaleTimeString();
+    logEl.innerHTML = `<div>[${t}] ${msg}</div>` + logEl.innerHTML;
+  }
+
+  // 암호학적 난수: 1~6 주사위처럼 생성 (여기선 1~10)
+  function secureRandomInt(min, maxInclusive){
+    const range = maxInclusive - min + 1;
+    const maxUint32 = 0xFFFFFFFF;
+    const biasZone = Math.floor(maxUint32 / range) * range;
+    const arr = new Uint32Array(1);
+    while(true){
+      crypto.getRandomValues(arr);
+      const r = arr[0];
+      if(r < biasZone){
+        return min + (r % range);
+      }
+    }
+  }
+
+  function play(betChoice){ // 'odd' or 'even'
+    const bet = Math.floor(Number(betInput.value));
+    if(!Number.isFinite(bet) || bet <= 0){ alert('배팅금액을 올바르게 입력해줘 ㅇ'); return; }
+    if(bet > balance){ alert('잔액 부족 ㅇ'); return; }
+
+    // 차단: 실제 결제 관련 동작 없음
+    // 결과 생성
+    const roll = secureRandomInt(1, 10); // 1~10
+    const isEven = (roll % 2 === 0);
+    const won = ( (isEven && betChoice === 'even') || (!isEven && betChoice === 'odd') );
+
+    // 손익 계산 (데모: 배당 multiplier, 집승률 = houseEdge)
+    let payout = 0;
+    if(won){
+      payout = Math.floor(bet * (multiplier - 1)); // 순이익
+      balance += payout;
+    } else {
+      balance -= bet;
+    }
+    saveBalance();
+    balanceEl.textContent = balance;
+
+    // 업데이트 UI
+    resultText.textContent = `주사위: ${roll} (${isEven ? '짝' : '홀'}) → ${won ? '승리 🎉' : '패배 😭'} / ${won ? ('+'+payout) : ('-'+bet)} 코인`;
+    log(`베팅: ${bet}코인 → 선택: ${betChoice} / 나온값: ${roll} / ${won ? '승' : '패'} / 잔액: ${balance}코인`);
+  }
+
+  document.getElementById('btnOdd').addEventListener('click', ()=>play('odd'));
+  document.getElementById('btnEven').addEventListener('click', ()=>play('even'));
+  document.getElementById('btnReset').addEventListener('click', ()=>{
+    if(confirm('잔액을 초기화할래? (학습용)')){ balance = 1000; saveBalance(); balanceEl.textContent = balance; log('잔액 초기화'); resultText.textContent='결과 대기 중'; }
+  });
+
+  // 초기 로드
+  loadBalance();
+  log('데모 시작 — 실제 화폐와 연결 금지됨');
+</script>
+</body>
+</html>
